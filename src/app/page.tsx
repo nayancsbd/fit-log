@@ -1,69 +1,79 @@
 import Image from "next/image";
+import WorkoutCard from "@/components/WorkoutCard";
+import { Workout } from "@/types/workout";
 
-export default function Home() {
+async function getWorkouts(): Promise<Workout[]> {
+  try {
+    const res = await fetch("https://api.abcz.workers.dev/api/fitlog", {
+      next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to load workouts (${res.status})`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error("Error fetching workouts on server:", err);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const workouts = await getWorkouts();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col gap-10">
+      <section className="w-full bg-[#15171e] border border-zinc-800/80 rounded-3xl p-8 sm:p-12 lg:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 overflow-hidden shadow-2xl shadow-black/40">
+        <div className="flex-1 max-w-2xl">
+          <span className="font-oswald text-[#bef264] font-bold uppercase text-xs tracking-widest block mb-4">
+            WORKOUT LIBRARY
+          </span>
+
+          <h1 className="font-oswald text-white font-bold text-4xl sm:text-5xl lg:text-[54px] tracking-tight leading-[1.05] uppercase">
+            TRAIN WITH INTENT. LOG<br />EVERY SET.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="text-zinc-400 text-xs sm:text-sm max-w-lg mt-5 leading-relaxed">
+            FitLog is a dark, no-nonsense gym companion: pick a lift, lock it into today&apos;s plan, and watch the week&apos;s work add up.
+          </p>
+
+          <a
+            href="#library"
+            className="mt-8 px-6 py-3 rounded-lg bg-[#bef264] hover:bg-[#a6d83b] text-black font-oswald font-bold text-xs sm:text-sm tracking-wider uppercase inline-flex items-center justify-center transition-all cursor-pointer shadow-sm"
+          >
+            <span>BROWSE WORKOUTS</span>
+          </a>
+        </div>
+
+        <div className="flex-shrink-0 flex items-center justify-center">
+          <Image
+            src="/banner.png"
+            alt="FitLog Workout Library Banner"
+            width={380}
+            height={380}
+            className="max-w-[260px] sm:max-w-[340px] lg:max-w-[400px] h-auto object-contain drop-shadow-2xl"
+            priority
+          />
+        </div>
+      </section>
+
+      <section id="library" className="w-full scroll-mt-20">
+        <div className="mb-6">
+          <h2 className="font-oswald text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">
+            THE LIBRARY
+          </h2>
+          <p className="text-xs sm:text-sm text-zinc-400 font-normal mt-0.5">
+            Twelve lifts covering every major muscle group.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {workouts.map((workout) => (
+            <WorkoutCard key={workout.id} workout={workout} />
+          ))}
         </div>
-      </main>
+      </section>
     </div>
   );
 }
