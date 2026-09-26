@@ -15,11 +15,10 @@ export default function MyPlanPage() {
     addToPlan,
     markAsDone,
     isDone,
-    isInPlan,
     isHydrated,
   } = useFitLog();
 
-  const [activeTab, setActiveTab] = useState<"plan" | "saved">("saved");
+  const [activeTab, setActiveTab] = useState<"plan" | "saved">("plan");
   const [sortBy, setSortBy] = useState<string>("duration");
 
   const totalMinutes = useMemo(() => {
@@ -47,47 +46,46 @@ export default function MyPlanPage() {
   }, [currentList, sortBy]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col gap-8">
-      <div>
-        <h1 className="font-oswald text-3xl sm:text-4xl lg:text-[40px] font-bold text-white tracking-tight uppercase">
-          MY PLAN
-        </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 font-normal mt-1">
-          Cap of five lifts for today. Finish them, then load more.
-        </p>
-      </div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+      {/* Top description */}
+      <p className="text-zinc-400 text-sm">
+        Cap of five lifts for today. Finish them, then load more.
+      </p>
 
-      <div className="bg-[#15171e] border border-zinc-800/80 rounded-2xl p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-800/80 shadow-xl">
-        <div className="flex flex-col sm:pr-8 pb-4 sm:pb-0">
-          <span className="text-xs text-zinc-400 font-normal mb-1">Exercises</span>
-          <span className="font-oswald text-3xl sm:text-4xl text-[#bef264] font-bold">
+      {/* Summary Stats Box */}
+      <div className="bg-[#12151e] border border-[#1e2433] rounded-2xl p-6 sm:p-7 grid grid-cols-3 divide-x divide-[#1e2433] shadow-lg">
+        <div className="flex flex-col pr-4 sm:pr-6">
+          <span className="text-xs text-zinc-400 font-normal mb-2">Exercises</span>
+          <span className="font-oswald text-4xl sm:text-5xl font-bold text-[#bef264] leading-none">
             {isHydrated ? planWorkouts.length : 0}
           </span>
         </div>
 
-        <div className="flex flex-col sm:px-8 py-4 sm:py-0">
-          <span className="text-xs text-zinc-400 font-normal mb-1">Minutes</span>
-          <span className="font-oswald text-3xl sm:text-4xl text-white font-bold">
+        <div className="flex flex-col px-4 sm:px-6">
+          <span className="text-xs text-zinc-400 font-normal mb-2">Minutes</span>
+          <span className="font-oswald text-4xl sm:text-5xl font-bold text-white leading-none">
             {isHydrated ? totalMinutes : 0}
           </span>
         </div>
 
-        <div className="flex flex-col sm:pl-8 pt-4 sm:pt-0">
-          <span className="text-xs text-zinc-400 font-normal mb-1">Calories</span>
-          <span className="font-oswald text-3xl sm:text-4xl text-white font-bold">
+        <div className="flex flex-col pl-4 sm:pl-6">
+          <span className="text-xs text-zinc-400 font-normal mb-2">Calories</span>
+          <span className="font-oswald text-4xl sm:text-5xl font-bold text-white leading-none">
             {isHydrated ? totalCalories : 0}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-1 bg-[#14161d] border border-zinc-800/80 p-1 rounded-xl w-fit">
+      {/* Controls Bar: Tabs and Sorting */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Tab Switcher */}
+        <div className="flex items-center bg-[#131722] border border-[#1e2433] p-1 rounded-xl">
           <button
             type="button"
             onClick={() => setActiveTab("plan")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-oswald font-bold transition-all ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === "plan"
-                ? "bg-[#222733] text-white shadow-sm"
+                ? "bg-[#222838] text-white shadow-sm"
                 : "text-zinc-400 hover:text-white"
             }`}
           >
@@ -96,9 +94,9 @@ export default function MyPlanPage() {
           <button
             type="button"
             onClick={() => setActiveTab("saved")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-oswald font-bold transition-all ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === "saved"
-                ? "bg-[#222733] text-white shadow-sm"
+                ? "bg-[#222838] text-white shadow-sm"
                 : "text-zinc-400 hover:text-white"
             }`}
           >
@@ -106,14 +104,13 @@ export default function MyPlanPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          <span className="text-xs text-zinc-400 font-oswald font-normal">
-            Sort By
-          </span>
+        {/* Sort Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-zinc-400">Sort By</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-[#15171e] border border-zinc-800/80 text-white font-oswald text-xs px-3.5 py-1.5 rounded-xl focus:outline-none focus:border-[#bef264]"
+            className="bg-[#131722] border border-[#1e2433] text-white text-xs font-semibold px-4 py-1.5 rounded-xl focus:outline-none focus:border-[#bef264] cursor-pointer"
           >
             <option value="duration">Duration</option>
             <option value="calories">Calories</option>
@@ -122,97 +119,78 @@ export default function MyPlanPage() {
         </div>
       </div>
 
+      {/* Workouts List */}
       {sortedList.length === 0 ? (
-        <div className="w-full border border-dashed border-zinc-800/80 rounded-2xl py-24 px-6 flex flex-col items-center justify-center text-center min-h-[380px]">
-          <h3 className="font-oswald text-white font-bold text-xl sm:text-2xl tracking-wide uppercase mb-2">
+        <div className="w-full border border-dashed border-[#1e2433] bg-[#12151e]/60 rounded-2xl py-24 px-6 flex flex-col items-center justify-center text-center">
+          <h3 className="font-oswald text-white font-bold text-xl uppercase tracking-wide mb-2">
             NOTHING HERE YET
           </h3>
-          <p className="text-xs sm:text-sm text-zinc-400 font-normal mb-6 max-w-sm">
+          <p className="text-xs sm:text-sm text-zinc-400 mb-6 max-w-sm">
             Browse the library and add a lift to get today moving.
           </p>
           <Link
             href="/#library"
-            className="bg-[#bef264] hover:bg-[#a6d83b] text-black font-oswald font-bold text-xs uppercase tracking-wide px-6 py-2.5 rounded-full transition-all shadow-md"
+            className="bg-[#bef264] hover:bg-lime-400 text-black font-bold text-xs uppercase px-6 py-2.5 rounded-full transition shadow-md"
           >
             Go to workouts
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-4">
           {sortedList.map((workout: Workout) => {
             const completed = isDone(workout.id);
-            const inPlan = isInPlan(workout.id);
 
             return (
               <div
                 key={workout.id}
-                className="bg-[#15171e] border border-zinc-800/80 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:border-zinc-700"
+                className="w-full bg-[#12151e] border border-[#1e2433] rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-zinc-700"
               >
-                <Link
-                  href={`/workout/${workout.id}`}
-                  className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-900 block"
-                >
-                  <Image
-                    src={workout.image}
-                    alt={workout.name}
-                    width={500}
-                    height={320}
-                    unoptimized
-                    className="h-full w-full object-cover object-center hover:scale-[1.02] transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#15171e] via-transparent to-transparent opacity-60 pointer-events-none" />
+                {/* Left: Thumbnail & Details */}
+                <div className="flex items-center gap-4 sm:gap-5">
+                  <Link
+                    href={`/workout/${workout.id}`}
+                    className="relative w-28 sm:w-36 aspect-[16/10] rounded-xl overflow-hidden shrink-0 bg-zinc-900 border border-zinc-800"
+                  >
+                    <Image
+                      src={workout.image}
+                      alt={workout.name}
+                      fill
+                      unoptimized
+                      className="object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </Link>
 
-                  {completed && (
-                    <div className="absolute top-3 left-3 bg-[#bef264] text-black font-oswald text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-md">
-                      COMPLETED
-                    </div>
-                  )}
-                </Link>
-
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex flex-wrap gap-2 mb-2.5">
-                      {workout.muscleGroups.map((group) => (
-                        <span
-                          key={group}
-                          className="bg-[#bef264] text-black text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-                        >
-                          {group}
-                        </span>
-                      ))}
-                    </div>
-
+                  <div className="flex flex-col gap-1">
                     <Link href={`/workout/${workout.id}`}>
-                      <h3 className="font-oswald text-white font-bold text-base tracking-wide leading-snug uppercase hover:text-[#bef264] transition-colors">
-                        {workout.name.toUpperCase()}
+                      <h3 className="font-oswald text-white font-bold text-base sm:text-lg uppercase tracking-wide hover:text-[#bef264] transition-colors leading-tight">
+                        {workout.name}
                       </h3>
                     </Link>
 
-                    <p className="text-xs text-zinc-400 mt-1 mb-4 font-normal">
+                    <p className="text-xs text-zinc-400">
                       {workout.equipment}
                     </p>
-                  </div>
 
-                  <div className="flex flex-col gap-3 mt-auto">
-                    <div className="border-t border-zinc-800/80 pt-3 flex items-center justify-between text-xs text-zinc-400 font-medium">
+                    {/* Metadata line: Duration, Calories, Rating */}
+                    <div className="flex items-center gap-3 text-xs text-zinc-300 mt-1">
+                      {/* Duration */}
                       <div className="flex items-center gap-1.5">
                         <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5 text-zinc-500"
-                          fill="none"
+                          className="w-3.5 h-3.5 text-[#bef264]"
                           viewBox="0 0 24 24"
+                          fill="none"
                           stroke="currentColor"
+                          strokeWidth="2"
                         >
-                          <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6l4 2" />
+                          <circle cx="12" cy="12" r="9" />
                         </svg>
                         <span>{workout.duration} min</span>
                       </div>
 
+                      {/* Calories */}
                       <div className="flex items-center gap-1.5">
                         <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5 text-zinc-500"
+                          className="w-3.5 h-3.5 text-[#bef264]"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -225,12 +203,12 @@ export default function MyPlanPage() {
                         <span>{workout.caloriesBurned} kcal</span>
                       </div>
 
+                      {/* Rating */}
                       <div className="flex items-center gap-1.5">
                         <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3.5 w-3.5 text-zinc-500"
-                          fill="none"
+                          className="w-3.5 h-3.5 text-[#bef264]"
                           viewBox="0 0 24 24"
+                          fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
                         >
@@ -239,55 +217,64 @@ export default function MyPlanPage() {
                         <span>{workout.rating}</span>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 pt-1 border-t border-zinc-800/40">
-                      {activeTab === "plan" ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => markAsDone(workout)}
-                            className={`flex-1 py-1.5 rounded-lg text-xs font-oswald font-bold uppercase transition-all ${
-                              completed
-                                ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                                : "bg-[#24350c] text-[#bef264] hover:bg-[#2f4610]"
-                            }`}
-                          >
-                            {completed ? "Mark Undone" : "Mark as Done"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeFromPlan(workout.id)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-oswald font-bold text-zinc-400 hover:text-rose-400 hover:bg-zinc-800/80 transition-all uppercase"
-                          >
-                            Remove
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {!inPlan ? (
-                            <button
-                              type="button"
-                              onClick={() => addToPlan(workout)}
-                              className="flex-1 py-1.5 rounded-lg text-xs font-oswald font-bold uppercase bg-[#bef264] text-black hover:bg-[#a6d83b] transition-all"
-                            >
-                              Add to Plan
-                            </button>
-                          ) : (
-                            <span className="flex-1 py-1.5 text-center text-xs font-oswald font-bold uppercase text-[#bef264]">
-                              In Today&apos;s Plan
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => removeFromSaved(workout.id)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-oswald font-bold text-zinc-400 hover:text-rose-400 hover:bg-zinc-800/80 transition-all uppercase"
-                          >
-                            Remove
-                          </button>
-                        </>
-                      )}
-                    </div>
                   </div>
+                </div>
+
+                {/* Right: Actions */}
+                <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                  <Link
+                    href={`/workout/${workout.id}`}
+                    className="px-5 py-2.5 rounded-full border border-zinc-700/60 bg-[#161a26] hover:bg-zinc-800 text-zinc-200 text-xs font-semibold transition"
+                  >
+                    View Details
+                  </Link>
+
+                  {activeTab === "plan" ? (
+                    <button
+                      type="button"
+                      onClick={() => markAsDone(workout)}
+                      className={`px-5 py-2.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                        completed
+                          ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                          : "bg-[#bef264] hover:bg-lime-400 text-black shadow-sm"
+                      }`}
+                    >
+                      {completed ? "Completed" : "Mark as Done"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => addToPlan(workout)}
+                      className="px-5 py-2.5 rounded-full text-xs font-bold bg-[#bef264] hover:bg-lime-400 text-black transition cursor-pointer shadow-sm"
+                    >
+                      Add to Plan
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      activeTab === "plan"
+                        ? removeFromPlan(workout.id)
+                        : removeFromSaved(workout.id)
+                    }
+                    title="Remove"
+                    className="p-2 text-zinc-500 hover:text-rose-400 transition rounded-lg hover:bg-zinc-800/60 cursor-pointer"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
             );
