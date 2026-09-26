@@ -27,12 +27,12 @@ export const metadata: Metadata = {
   description: "FitLog is a dark, no-nonsense gym companion: pick a lift, lock it into today's plan, and watch the week's work add up.",
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/icon.svg?v=2", type: "image/svg+xml" },
+      { url: "/icon.png?v=2", type: "image/png" },
+      { url: "/favicon.ico?v=2" },
     ],
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    shortcut: "/icon.png?v=2",
+    apple: "/icon.png?v=2",
   },
 };
 

@@ -71,6 +71,9 @@ function MyPlanContent() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+      <h2 className="font-oswald text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">
+        MY PLAN
+      </h2>
       <p className="text-zinc-400 text-sm">
         Cap of five lifts for today. Finish them, then load more.
       </p>
@@ -103,22 +106,20 @@ function MyPlanContent() {
           <button
             type="button"
             onClick={() => handleTabChange("plan")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === "plan"
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "plan"
                 ? "bg-[#222838] text-white shadow-sm"
                 : "text-zinc-400 hover:text-white"
-            }`}
+              }`}
           >
             Today&apos;s Plan ({planWorkouts.length})
           </button>
           <button
             type="button"
             onClick={() => handleTabChange("saved")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-              activeTab === "saved"
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${activeTab === "saved"
                 ? "bg-[#222838] text-white shadow-sm"
                 : "text-zinc-400 hover:text-white"
-            }`}
+              }`}
           >
             Saved ({savedWorkouts.length})
           </button>
@@ -308,11 +309,10 @@ function MyPlanContent() {
                     <button
                       type="button"
                       onClick={() => markAsDone(workout)}
-                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition cursor-pointer ${
-                        completed
+                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition cursor-pointer ${completed
                           ? "bg-[#182312] text-[#bef264] border border-[#bef264]/40 hover:bg-[#202d18]"
                           : "bg-[#bef264] hover:bg-lime-400 text-black shadow-sm"
-                      }`}
+                        }`}
                     >
                       <svg
                         className="w-3.5 h-3.5 shrink-0"

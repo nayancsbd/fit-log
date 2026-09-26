@@ -47,29 +47,23 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2.5 sm:gap-3 text-xs">
+        <div className="flex items-center gap-4 sm:gap-6 text-xs">
           <Link
             href="/my-plan?tab=plan"
-            title="View Today's Plan"
-            className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#141720] border border-zinc-800 hover:border-[#bef264]/40 hover:bg-[#1a202c] active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
-            <span className="font-oswald tracking-wider uppercase text-zinc-300 group-hover:text-white transition-colors">
-              Plan
-            </span>
-            <span className="min-w-5 h-5 px-1.5 rounded-full bg-[#bef264] text-black font-oswald font-bold text-[11px] flex items-center justify-center leading-none shadow-sm shadow-[#bef264]/20">
+            <span className="font-oswald tracking-wide">Plan</span>
+            <span className="w-5 h-5 rounded-full bg-[#bef264] text-black font-oswald font-bold text-[11px] flex items-center justify-center leading-none">
               {planCount}
             </span>
           </Link>
 
           <Link
             href="/my-plan?tab=saved"
-            title="View Saved Favorites"
-            className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#141720] border border-zinc-800 hover:border-zinc-600 hover:bg-[#1a202c] active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors cursor-pointer"
           >
-            <span className="font-oswald tracking-wider uppercase text-zinc-300 group-hover:text-white transition-colors">
-              Saved
-            </span>
-            <span className="min-w-5 h-5 px-1.5 rounded-full border border-zinc-700 bg-zinc-800/90 text-zinc-300 font-oswald font-medium text-[11px] flex items-center justify-center leading-none">
+            <span className="font-oswald tracking-wide">Saved</span>
+            <span className="w-5 h-5 rounded-full border border-zinc-700 bg-zinc-800/80 text-zinc-400 font-oswald font-medium text-[11px] flex items-center justify-center leading-none">
               {savedCount}
             </span>
           </Link>

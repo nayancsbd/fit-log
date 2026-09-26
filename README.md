@@ -56,4 +56,4 @@ A dark, high-intensity gym companion built with Next.js App Router, React 19, an
    Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 
-## Live URL: 
+## Live URL: [FitLog](https://fit-log-beta-amber.vercel.app)
