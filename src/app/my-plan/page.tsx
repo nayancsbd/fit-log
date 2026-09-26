@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useFitLog } from "@/context/FitLogContext";
 import { Workout } from "@/types/workout";
 
-export default function MyPlanPage() {
+function MyPlanContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+
   const {
     planWorkouts,
     savedWorkouts,
@@ -20,6 +25,19 @@ export default function MyPlanPage() {
 
   const [activeTab, setActiveTab] = useState<"plan" | "saved">("plan");
   const [sortBy, setSortBy] = useState<string>("duration");
+
+  useEffect(() => {
+    if (tabParam === "saved" || window.location.hash === "#saved") {
+      setActiveTab("saved");
+    } else if (tabParam === "plan" || window.location.hash === "#plan") {
+      setActiveTab("plan");
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tab: "plan" | "saved") => {
+    setActiveTab(tab);
+    router.replace(`/my-plan?tab=${tab}`, { scroll: false });
+  };
 
   const totalMinutes = useMemo(() => {
     return planWorkouts.reduce((acc, curr) => acc + (curr.duration || 0), 0);
@@ -82,7 +100,7 @@ export default function MyPlanPage() {
         <div className="flex items-center bg-[#131722] border border-[#1e2433] p-1 rounded-xl">
           <button
             type="button"
-            onClick={() => setActiveTab("plan")}
+            onClick={() => handleTabChange("plan")}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === "plan"
                 ? "bg-[#222838] text-white shadow-sm"
@@ -93,7 +111,7 @@ export default function MyPlanPage() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("saved")}
+            onClick={() => handleTabChange("saved")}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeTab === "saved"
                 ? "bg-[#222838] text-white shadow-sm"
@@ -284,3 +302,18 @@ export default function MyPlanPage() {
     </div>
   );
 }
+
+export default function MyPlanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#bef264] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <MyPlanContent />
+    </Suspense>
+  );
+}
+
