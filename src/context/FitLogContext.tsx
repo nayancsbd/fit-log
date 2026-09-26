@@ -1,8 +1,82 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useSyncExternalStore,
+  useMemo,
+} from "react";
 import { Workout } from "@/types/workout";
 import { toast } from "sonner";
+
+class StorageStore<T> {
+  private key: string;
+  private fallback: T;
+  private listeners = new Set<() => void>();
+  private cachedRaw: string | null = "EMPTY_INIT";
+  private cachedData: T;
+
+  constructor(key: string, fallback: T) {
+    this.key = key;
+    this.fallback = fallback;
+    this.cachedData = fallback;
+  }
+
+  getSnapshot = (): T => {
+    if (typeof window === "undefined") return this.fallback;
+    try {
+      const raw = localStorage.getItem(this.key);
+      if (raw === this.cachedRaw) {
+        return this.cachedData;
+      }
+      this.cachedRaw = raw;
+      this.cachedData = raw ? JSON.parse(raw) : this.fallback;
+      return this.cachedData;
+    } catch {
+      return this.cachedData;
+    }
+  };
+
+  getServerSnapshot = (): T => this.fallback;
+
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === this.key || e.key === null) {
+        this.cachedRaw = "FORCE_UPDATE";
+        listener();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      this.listeners.delete(listener);
+      window.removeEventListener("storage", onStorage);
+    };
+  };
+
+  setValue = (updater: T | ((prev: T) => T)) => {
+    const current = this.getSnapshot();
+    const nextVal =
+      typeof updater === "function"
+        ? (updater as (prev: T) => T)(current)
+        : updater;
+    const raw = JSON.stringify(nextVal);
+    this.cachedRaw = raw;
+    this.cachedData = nextVal;
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(this.key, raw);
+      }
+    } catch (e) {
+      console.error(`Error saving ${this.key}:`, e);
+    }
+    this.listeners.forEach((l) => l());
+  };
+}
+
+const planStore = new StorageStore<Workout[]>("fitlog_plan", []);
+const savedStore = new StorageStore<Workout[]>("fitlog_saved", []);
+const doneStore = new StorageStore<Workout[]>("fitlog_done", []);
 
 interface FitLogContextType {
   planWorkouts: Workout[];
@@ -10,132 +84,136 @@ interface FitLogContextType {
   doneWorkouts: Workout[];
   isHydrated: boolean;
   addToPlan: (workout: Workout) => boolean;
-  removeFromPlan: (workoutId: number) => void;
+  removeFromPlan: (workoutId: number | string) => void;
   addToSaved: (workout: Workout) => void;
-  removeFromSaved: (workoutId: number) => void;
-  markAsDone: (workoutOrId: Workout | number) => void;
-  isInPlan: (workoutId: number) => boolean;
-  isSaved: (workoutId: number) => boolean;
-  isDone: (workoutId: number) => boolean;
+  removeFromSaved: (workoutId: number | string) => void;
+  markAsDone: (workoutOrId: Workout | number | string) => void;
+  isInPlan: (workoutId: number | string) => boolean;
+  isSaved: (workoutId: number | string) => boolean;
+  isDone: (workoutId: number | string) => boolean;
   clearPlan: () => void;
 }
 
 const FitLogContext = createContext<FitLogContextType | undefined>(undefined);
 
 export function FitLogProvider({ children }: { children: React.ReactNode }) {
-  const [planWorkouts, setPlanWorkouts] = useState<Workout[]>([]);
-  const [savedWorkouts, setSavedWorkouts] = useState<Workout[]>([]);
-  const [doneWorkouts, setDoneWorkouts] = useState<Workout[]>([]);
-  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  const planWorkouts = useSyncExternalStore(
+    planStore.subscribe,
+    planStore.getSnapshot,
+    planStore.getServerSnapshot
+  );
 
-  useEffect(() => {
-    try {
-      const storedPlan = localStorage.getItem("fitlog_plan");
-      const storedSaved = localStorage.getItem("fitlog_saved");
-      const storedDone = localStorage.getItem("fitlog_done");
+  const savedWorkouts = useSyncExternalStore(
+    savedStore.subscribe,
+    savedStore.getSnapshot,
+    savedStore.getServerSnapshot
+  );
 
-      queueMicrotask(() => {
-        if (storedPlan) setPlanWorkouts(JSON.parse(storedPlan));
-        if (storedSaved) setSavedWorkouts(JSON.parse(storedSaved));
-        if (storedDone) setDoneWorkouts(JSON.parse(storedDone));
-        setIsHydrated(true);
-      });
-    } catch (err) {
-      console.error("Error reading FitLog data from localStorage:", err);
-      queueMicrotask(() => {
-        setIsHydrated(true);
-      });
-    }
-  }, []);
+  const doneWorkouts = useSyncExternalStore(
+    doneStore.subscribe,
+    doneStore.getSnapshot,
+    doneStore.getServerSnapshot
+  );
 
-  useEffect(() => {
-    if (!isHydrated) return;
-    try {
-      localStorage.setItem("fitlog_plan", JSON.stringify(planWorkouts));
-    } catch (err) {
-      console.error("Error saving planWorkouts to localStorage:", err);
-    }
-  }, [planWorkouts, isHydrated]);
+  const isHydrated = useSyncExternalStore(
+    () => () => { },
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    if (!isHydrated) return;
-    try {
-      localStorage.setItem("fitlog_saved", JSON.stringify(savedWorkouts));
-    } catch (err) {
-      console.error("Error saving savedWorkouts to localStorage:", err);
-    }
-  }, [savedWorkouts, isHydrated]);
+  const isInPlan = useMemo(
+    () => (workoutId: number | string): boolean => {
+      const numId = Number(workoutId);
+      return planWorkouts.some((item) => Number(item.id) === numId);
+    },
+    [planWorkouts]
+  );
 
-  useEffect(() => {
-    if (!isHydrated) return;
-    try {
-      localStorage.setItem("fitlog_done", JSON.stringify(doneWorkouts));
-    } catch (err) {
-      console.error("Error saving doneWorkouts to localStorage:", err);
-    }
-  }, [doneWorkouts, isHydrated]);
+  const isSaved = useMemo(
+    () => (workoutId: number | string): boolean => {
+      const numId = Number(workoutId);
+      return savedWorkouts.some((item) => Number(item.id) === numId);
+    },
+    [savedWorkouts]
+  );
 
-  const isInPlan = (workoutId: number): boolean => {
-    return planWorkouts.some((item) => item.id === workoutId);
-  };
-
-  const isSaved = (workoutId: number): boolean => {
-    return savedWorkouts.some((item) => item.id === workoutId);
-  };
-
-  const isDone = (workoutId: number): boolean => {
-    return doneWorkouts.some((item) => item.id === workoutId);
-  };
+  const isDone = useMemo(
+    () => (workoutId: number | string): boolean => {
+      const numId = Number(workoutId);
+      return doneWorkouts.some((item) => Number(item.id) === numId);
+    },
+    [doneWorkouts]
+  );
 
   const addToPlan = (workout: Workout): boolean => {
     if (isInPlan(workout.id)) {
-      toast.info(`"${workout.name}" is already in your daily plan.`);
+      toast.info(`"${workout.name}" is already in your daily plan.`, {
+        id: `plan-${workout.id}`,
+      });
       return false;
     }
 
     if (planWorkouts.length >= 5) {
-      toast.error("Plan limit reached! Maximum 5 workouts allowed in your daily plan.");
+      toast.error(
+        "Plan limit reached! Maximum 5 workouts allowed in your daily plan.",
+        { id: "plan-limit" }
+      );
       return false;
     }
 
-    setPlanWorkouts((prev) => [...prev, workout]);
-    toast.success(`"${workout.name}" added to today's plan!`);
+    planStore.setValue((prev) => [...prev, workout]);
+    toast.success(`"${workout.name}" added to today's plan!`, {
+      id: `plan-${workout.id}`,
+    });
     return true;
   };
 
-  const removeFromPlan = (workoutId: number) => {
-    const itemToRemove = planWorkouts.find((w) => w.id === workoutId);
-    setPlanWorkouts((prev) => prev.filter((item) => item.id !== workoutId));
+  const removeFromPlan = (workoutId: number | string) => {
+    const numId = Number(workoutId);
+    const itemToRemove = planWorkouts.find((w) => Number(w.id) === numId);
+    planStore.setValue((prev) => prev.filter((item) => Number(item.id) !== numId));
     if (itemToRemove) {
-      toast.info(`"${itemToRemove.name}" removed from plan.`);
+      toast.info(`"${itemToRemove.name}" removed from plan.`, {
+        id: `plan-${numId}`,
+      });
     }
   };
 
   const addToSaved = (workout: Workout) => {
     if (isSaved(workout.id)) {
-      toast.info(`"${workout.name}" is already saved in your favorites.`);
+      toast.info(`"${workout.name}" is already saved in your favorites.`, {
+        id: `saved-${workout.id}`,
+      });
       return;
     }
 
-    setSavedWorkouts((prev) => [...prev, workout]);
-    toast.success(`"${workout.name}" saved to favorites!`);
+    savedStore.setValue((prev) => [...prev, workout]);
+    toast.success(`"${workout.name}" saved to favorites!`, {
+      id: `saved-${workout.id}`,
+    });
   };
 
-  const removeFromSaved = (workoutId: number) => {
-    const itemToRemove = savedWorkouts.find((w) => w.id === workoutId);
-    setSavedWorkouts((prev) => prev.filter((item) => item.id !== workoutId));
+  const removeFromSaved = (workoutId: number | string) => {
+    const numId = Number(workoutId);
+    const itemToRemove = savedWorkouts.find((w) => Number(w.id) === numId);
+    savedStore.setValue((prev) => prev.filter((item) => Number(item.id) !== numId));
     if (itemToRemove) {
-      toast.info(`"${itemToRemove.name}" removed from saved.`);
+      toast.info(`"${itemToRemove.name}" removed from saved.`, {
+        id: `saved-${numId}`,
+      });
     }
   };
 
-  const markAsDone = (workoutOrId: Workout | number) => {
-    const id = typeof workoutOrId === "number" ? workoutOrId : workoutOrId.id;
+  const markAsDone = (workoutOrId: Workout | number | string) => {
+    const id =
+      typeof workoutOrId === "object"
+        ? workoutOrId.id
+        : Number(workoutOrId);
     const isCurrentlyDone = isDone(id);
 
     if (isCurrentlyDone) {
-      setDoneWorkouts((prev) => prev.filter((item) => item.id !== id));
-      toast.info("Workout unmarked as completed.");
+      doneStore.setValue((prev) => prev.filter((item) => Number(item.id) !== Number(id)));
+      toast.info("Workout unmarked as completed.", { id: `done-${id}` });
       return;
     }
 
@@ -144,16 +222,18 @@ export function FitLogProvider({ children }: { children: React.ReactNode }) {
       targetWorkout = workoutOrId;
     } else {
       targetWorkout =
-        planWorkouts.find((w) => w.id === id) ||
-        savedWorkouts.find((w) => w.id === id);
+        planWorkouts.find((w) => Number(w.id) === Number(id)) ||
+        savedWorkouts.find((w) => Number(w.id) === Number(id));
     }
 
     if (targetWorkout) {
-      setDoneWorkouts((prev) => [...prev, targetWorkout!]);
-      toast.success(`"${targetWorkout.name}" completed! Great job! 💪`);
+      doneStore.setValue((prev) => [...prev, targetWorkout!]);
+      toast.success(`"${targetWorkout.name}" completed! Great job! 💪`, {
+        id: `done-${id}`,
+      });
     } else {
       const placeholder: Workout = {
-        id,
+        id: Number(id),
         name: `Workout #${id}`,
         image: "",
         muscleGroups: [],
@@ -167,14 +247,14 @@ export function FitLogProvider({ children }: { children: React.ReactNode }) {
         description: "",
         instructions: [],
       };
-      setDoneWorkouts((prev) => [...prev, placeholder]);
-      toast.success("Workout completed! Great job! 💪");
+      doneStore.setValue((prev) => [...prev, placeholder]);
+      toast.success("Workout completed! Great job! 💪", { id: `done-${id}` });
     }
   };
 
   const clearPlan = () => {
-    setPlanWorkouts([]);
-    toast.info("Daily plan cleared.");
+    planStore.setValue([]);
+    toast.info("Daily plan cleared.", { id: "clear-plan" });
   };
 
   return (
@@ -207,3 +287,4 @@ export function useFitLog(): FitLogContextType {
   }
   return context;
 }
+

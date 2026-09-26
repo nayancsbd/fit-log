@@ -22,7 +22,8 @@ export default function ActionButtons({ workout }: ActionButtonsProps) {
   const saved = isSaved(workout.id);
   const isPlanFull = planWorkouts.length >= 5 && !inPlan;
 
-  const handlePlanClick = () => {
+  const handlePlanClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     if (inPlan) {
       removeFromPlan(workout.id);
     } else {
@@ -30,7 +31,8 @@ export default function ActionButtons({ workout }: ActionButtonsProps) {
     }
   };
 
-  const handleSaveClick = () => {
+  const handleSaveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     if (saved) {
       removeFromSaved(workout.id);
     } else {
@@ -38,19 +40,21 @@ export default function ActionButtons({ workout }: ActionButtonsProps) {
     }
   };
 
-  const baseBtn = "px-5 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer";
+  const baseBtn =
+    "w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all duration-150 active:scale-95 touch-manipulation select-none cursor-pointer";
 
   return (
-    <div className="flex flex-wrap items-center gap-3 pt-1">
-      {/* Add / In Plan Button */}
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
       <button
         type="button"
         onClick={handlePlanClick}
         disabled={isPlanFull}
         className={`${baseBtn} ${
-          isPlanFull
-            ? "bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-60"
-            : "bg-[#bef264] text-black hover:bg-lime-400"
+          inPlan
+            ? "bg-[#24350c] text-[#bef264] border border-[#bef264]/40 hover:bg-[#2d4212]"
+            : isPlanFull
+            ? "bg-zinc-800/80 text-zinc-500 border border-zinc-700/60 cursor-not-allowed opacity-60 pointer-events-none sm:pointer-events-auto"
+            : "bg-[#bef264] text-black hover:bg-[#a6d83b] shadow-lg shadow-[#bef264]/10"
         }`}
       >
         <svg
@@ -74,13 +78,12 @@ export default function ActionButtons({ workout }: ActionButtonsProps) {
         </span>
       </button>
 
-      {/* Save / Favorite Button */}
       <button
         type="button"
         onClick={handleSaveClick}
         className={`${baseBtn} border ${
           saved
-            ? "bg-[#181e2c] text-[#bef264] border-[#bef264]/40"
+            ? "bg-[#181e2c] text-[#bef264] border-[#bef264]/50"
             : "bg-[#131722] text-zinc-200 border-[#222838] hover:bg-zinc-800"
         }`}
       >
@@ -100,3 +103,4 @@ export default function ActionButtons({ workout }: ActionButtonsProps) {
     </div>
   );
 }
+

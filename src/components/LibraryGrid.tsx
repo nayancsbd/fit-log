@@ -9,7 +9,8 @@ interface LibraryGridProps {
 }
 
 export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
-  const [sortBy, setSortBy] = useState<string>("default");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("duration");
   const [selectedMuscle, setSelectedMuscle] = useState<string>("All");
 
   const muscleGroups = useMemo(() => {
@@ -20,7 +21,7 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
     return ["All", ...Array.from(groups)];
   }, [workouts]);
 
-  const sortedWorkouts = useMemo(() => {
+  const filteredWorkouts = useMemo(() => {
     let list = [...workouts];
 
     if (selectedMuscle !== "All") {
@@ -31,6 +32,19 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
       );
     }
 
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      list = list.filter((w) => {
+        const nameMatch = w.name?.toLowerCase().includes(query);
+        const muscleMatch = w.muscleGroups?.some((m) =>
+          m.toLowerCase().includes(query)
+        );
+        const equipMatch = w.equipment?.toLowerCase().includes(query);
+        const descMatch = w.description?.toLowerCase().includes(query);
+        return nameMatch || muscleMatch || equipMatch || descMatch;
+      });
+    }
+
     switch (sortBy) {
       case "duration":
         return list.sort((a, b) => a.duration - b.duration);
@@ -39,31 +53,53 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
       case "rating":
         return list.sort((a, b) => b.rating - a.rating);
       default:
-        return list;
+        return list.sort((a, b) => a.duration - b.duration);
     }
-  }, [workouts, sortBy, selectedMuscle]);
+  }, [workouts, searchQuery, sortBy, selectedMuscle]);
 
   return (
     <section id="library" className="w-full scroll-mt-24 flex flex-col gap-6">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-2 border-b border-zinc-800/80">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-oswald text-[#bef264] text-xs font-bold uppercase tracking-widest">
-              EXERCISE CATALOG
-            </span>
-            <span className="badge badge-sm bg-[#1e2a14] text-[#bef264] border border-[#2d421d] font-oswald text-[10px]">
-              {sortedWorkouts.length} OF {workouts.length}
-            </span>
-          </div>
           <h2 className="font-oswald text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">
             THE LIBRARY
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 font-normal mt-0.5">
-            Compound and isolation lifts covering every major muscle group.
+            Twelve lifts covering every major muscle group.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 sm:w-64">
+            <input
+              type="text"
+              placeholder="Search by name, muscle, tag..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#131722] border border-[#1e2433] text-white placeholder-zinc-500 text-xs rounded-xl pl-9 pr-8 py-2 focus:outline-none focus:border-[#bef264] transition-colors"
+            />
+            <svg
+              className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
+            </svg>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white text-xs cursor-pointer p-0.5"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
           <div className="flex items-center gap-2">
             <label
               htmlFor="sort-by-select"
@@ -71,17 +107,27 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
             >
               Sort By:
             </label>
-            <select
-              id="sort-by-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="select select-sm bg-[#15171e] text-white border-zinc-700/80 rounded-xl font-oswald text-xs uppercase tracking-wider focus:border-[#bef264] focus:outline-none"
-            >
-              <option value="default">Default Order</option>
-              <option value="duration">Duration (Shortest)</option>
-              <option value="calories">Calories (Highest)</option>
-              <option value="rating">Rating (Highest)</option>
-            </select>
+            <div className="relative inline-flex items-center">
+              <select
+                id="sort-by-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-[#131722] border border-[#1e2433] text-white font-oswald text-xs uppercase tracking-wider pl-3 pr-8 py-2 rounded-xl focus:border-[#bef264] focus:outline-none cursor-pointer"
+              >
+                <option value="duration">Duration</option>
+                <option value="calories">Calories</option>
+                <option value="rating">Rating</option>
+              </select>
+              <svg
+                className="w-3.5 h-3.5 text-zinc-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -95,7 +141,7 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
                 key={muscle}
                 type="button"
                 onClick={() => setSelectedMuscle(muscle)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-oswald font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-oswald font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? "bg-[#bef264] text-black shadow-md shadow-[#bef264]/20"
                     : "bg-[#15171e] text-zinc-400 border border-zinc-800/80 hover:text-white hover:border-zinc-700"
@@ -108,24 +154,25 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
         </div>
       )}
 
-      {sortedWorkouts.length > 0 ? (
+      {filteredWorkouts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedWorkouts.map((workout) => (
+          {filteredWorkouts.map((workout) => (
             <WorkoutCard key={workout.id} workout={workout} />
           ))}
         </div>
       ) : (
-        <div className="w-full bg-[#15171e] border border-zinc-800/80 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
+        <div className="w-full bg-[#15171e] border border-dashed border-zinc-800 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
           <p className="text-zinc-400 text-sm mb-4">
-            No workouts found for &quot;{selectedMuscle}&quot;.
+            No workouts matching your search &quot;{searchQuery || selectedMuscle}&quot;.
           </p>
           <button
             type="button"
             onClick={() => {
+              setSearchQuery("");
               setSelectedMuscle("All");
-              setSortBy("default");
+              setSortBy("duration");
             }}
-            className="btn btn-sm bg-[#bef264] hover:bg-[#a6d83b] text-black border-none font-oswald font-bold text-xs uppercase tracking-wider rounded-xl"
+            className="btn btn-sm bg-[#bef264] hover:bg-[#a6d83b] text-black border-none font-oswald font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer"
           >
             Reset Filters
           </button>
@@ -134,3 +181,4 @@ export default function LibraryGrid({ workouts = [] }: LibraryGridProps) {
     </section>
   );
 }
+

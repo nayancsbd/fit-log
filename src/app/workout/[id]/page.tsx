@@ -32,12 +32,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!workout) {
     return {
-      title: "Workout Not Found — FITLOG",
+      title: "Workout Not Found FITLOG",
     };
   }
 
   return {
-    title: `${workout.name.toUpperCase()} — FITLOG`,
+    title: `${workout.name.toUpperCase()} FITLOG`,
     description: workout.description,
   };
 }
@@ -73,7 +73,6 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-6xl mx-auto p-6 md:p-10 flex flex-col gap-6">
-      {/* Back button */}
       <div>
         <Link
           href="/#library"
@@ -92,9 +91,7 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
         </Link>
       </div>
 
-      {/* Main 2-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* Left: Workout Image */}
         <div className="relative aspect-square rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl">
           <Image
             src={workout.image}
@@ -106,9 +103,7 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
           />
         </div>
 
-        {/* Right: Details & Actions */}
         <div className="flex flex-col gap-6">
-          {/* Title and Description */}
           <div>
             <h1 className="font-oswald text-4xl sm:text-5xl font-bold uppercase tracking-tight">
               {workout.name}
@@ -118,7 +113,6 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
             </p>
           </div>
 
-          {/* Muscle Groups */}
           <div className="flex flex-wrap gap-2">
             {workout.muscleGroups.map((group) => (
               <span
@@ -130,15 +124,13 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
             ))}
           </div>
 
-          {/* Specifications Table */}
           <div className="bg-[#131722] border border-[#1e2433] rounded-2xl divide-y divide-[#1e2433]">
             {specs.map((item) => (
               <div key={item.label} className="flex justify-between px-5 py-3 text-xs">
                 <span className="text-zinc-400 font-bold">{item.label}</span>
                 <span
-                  className={`text-zinc-100 font-semibold ${
-                    item.isCapitalized ? "capitalize" : ""
-                  }`}
+                  className={`text-zinc-100 font-semibold ${item.isCapitalized ? "capitalize" : ""
+                    }`}
                 >
                   {item.value}
                 </span>
@@ -146,7 +138,6 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
             ))}
           </div>
 
-          {/* Instructions */}
           <div className="flex flex-col gap-3">
             <h2 className="font-oswald text-sm font-bold uppercase tracking-wider">
               INSTRUCTIONS
@@ -161,7 +152,6 @@ export default async function WorkoutDetailPage({ params }: PageProps) {
             </ol>
           </div>
 
-          {/* Action Buttons */}
           <ActionButtons workout={workout} />
         </div>
       </div>

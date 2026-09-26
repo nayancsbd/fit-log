@@ -1,5 +1,5 @@
 import Image from "next/image";
-import WorkoutCard from "@/components/WorkoutCard";
+import LibraryGrid from "@/components/LibraryGrid";
 import { Workout } from "@/types/workout";
 
 async function getWorkouts(): Promise<Workout[]> {
@@ -58,22 +58,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="library" className="w-full scroll-mt-20">
-        <div className="mb-6">
-          <h2 className="font-oswald text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight">
-            THE LIBRARY
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400 font-normal mt-0.5">
-            Twelve lifts covering every major muscle group.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {workouts.map((workout) => (
-            <WorkoutCard key={workout.id} workout={workout} />
-          ))}
-        </div>
-      </section>
+      <LibraryGrid workouts={workouts} />
     </div>
   );
 }

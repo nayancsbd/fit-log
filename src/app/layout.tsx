@@ -23,8 +23,17 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "FITLOG - Workout Library & Fitness Planner",
+  title: "FITLOG WORKOUT LIBRARY",
   description: "FitLog is a dark, no-nonsense gym companion: pick a lift, lock it into today's plan, and watch the week's work add up.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,19 +23,11 @@ function MyPlanContent() {
     isHydrated,
   } = useFitLog();
 
-  const [activeTab, setActiveTab] = useState<"plan" | "saved">("plan");
+  const activeTab: "plan" | "saved" = tabParam === "saved" ? "saved" : "plan";
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("duration");
 
-  useEffect(() => {
-    if (tabParam === "saved" || window.location.hash === "#saved") {
-      setActiveTab("saved");
-    } else if (tabParam === "plan" || window.location.hash === "#plan") {
-      setActiveTab("plan");
-    }
-  }, [tabParam]);
-
   const handleTabChange = (tab: "plan" | "saved") => {
-    setActiveTab(tab);
     router.replace(`/my-plan?tab=${tab}`, { scroll: false });
   };
 
@@ -49,8 +41,22 @@ function MyPlanContent() {
 
   const currentList = activeTab === "plan" ? planWorkouts : savedWorkouts;
 
-  const sortedList = useMemo(() => {
-    const list = [...currentList];
+  const filteredAndSortedList = useMemo(() => {
+    let list = [...currentList];
+
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      list = list.filter((w) => {
+        const nameMatch = w.name?.toLowerCase().includes(query);
+        const muscleMatch = w.muscleGroups?.some((m) =>
+          m.toLowerCase().includes(query)
+        );
+        const equipMatch = w.equipment?.toLowerCase().includes(query);
+        const descMatch = w.description?.toLowerCase().includes(query);
+        return nameMatch || muscleMatch || equipMatch || descMatch;
+      });
+    }
+
     switch (sortBy) {
       case "duration":
         return list.sort((a, b) => a.duration - b.duration);
@@ -61,16 +67,14 @@ function MyPlanContent() {
       default:
         return list;
     }
-  }, [currentList, sortBy]);
+  }, [currentList, searchQuery, sortBy]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
-      {/* Top description */}
       <p className="text-zinc-400 text-sm">
         Cap of five lifts for today. Finish them, then load more.
       </p>
 
-      {/* Summary Stats Box */}
       <div className="bg-[#12151e] border border-[#1e2433] rounded-2xl p-6 sm:p-7 grid grid-cols-3 divide-x divide-[#1e2433] shadow-lg">
         <div className="flex flex-col pr-4 sm:pr-6">
           <span className="text-xs text-zinc-400 font-normal mb-2">Exercises</span>
@@ -94,10 +98,8 @@ function MyPlanContent() {
         </div>
       </div>
 
-      {/* Controls Bar: Tabs and Sorting */}
-      <div className="flex items-center justify-between gap-4">
-        {/* Tab Switcher */}
-        <div className="flex items-center bg-[#131722] border border-[#1e2433] p-1 rounded-xl">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="flex items-center bg-[#131722] border border-[#1e2433] p-1 rounded-xl self-start sm:self-auto">
           <button
             type="button"
             onClick={() => handleTabChange("plan")}
@@ -107,7 +109,7 @@ function MyPlanContent() {
                 : "text-zinc-400 hover:text-white"
             }`}
           >
-            Today&apos;s Plan
+            Today&apos;s Plan ({planWorkouts.length})
           </button>
           <button
             type="button"
@@ -118,44 +120,105 @@ function MyPlanContent() {
                 : "text-zinc-400 hover:text-white"
             }`}
           >
-            Saved
+            Saved ({savedWorkouts.length})
           </button>
         </div>
 
-        {/* Sort Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400">Sort By</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-[#131722] border border-[#1e2433] text-white text-xs font-semibold px-4 py-1.5 rounded-xl focus:outline-none focus:border-[#bef264] cursor-pointer"
-          >
-            <option value="duration">Duration</option>
-            <option value="calories">Calories</option>
-            <option value="rating">Rating</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 sm:w-56">
+            <input
+              type="text"
+              placeholder={`Search ${activeTab === "plan" ? "plan" : "saved"}...`}
+              value={searchQuery === "duration" ? "" : searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#131722] border border-[#1e2433] text-white placeholder-zinc-500 text-xs rounded-xl pl-9 pr-8 py-2 focus:outline-none focus:border-[#bef264] transition-colors"
+            />
+            <svg
+              className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" />
+            </svg>
+            {searchQuery && searchQuery !== "duration" && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white text-xs cursor-pointer p-0.5"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="my-plan-sort-select"
+              className="text-xs text-zinc-400 font-oswald uppercase tracking-wider whitespace-nowrap"
+            >
+              Sort By
+            </label>
+            <div className="relative inline-flex items-center">
+              <select
+                id="my-plan-sort-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-[#131722] border border-[#1e2433] text-white text-xs font-semibold pl-3 pr-8 py-2 rounded-xl focus:outline-none focus:border-[#bef264] cursor-pointer"
+              >
+                <option value="duration">Duration</option>
+                <option value="calories">Calories</option>
+                <option value="rating">Rating</option>
+              </select>
+              <svg
+                className="w-3.5 h-3.5 text-zinc-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Workouts List */}
-      {sortedList.length === 0 ? (
+      {filteredAndSortedList.length === 0 ? (
         <div className="w-full border border-dashed border-[#1e2433] bg-[#12151e]/60 rounded-2xl py-24 px-6 flex flex-col items-center justify-center text-center">
           <h3 className="font-oswald text-white font-bold text-xl uppercase tracking-wide mb-2">
-            NOTHING HERE YET
+            {searchQuery
+              ? "NO MATCHING WORKOUTS"
+              : "NOTHING HERE YET"}
           </h3>
           <p className="text-xs sm:text-sm text-zinc-400 mb-6 max-w-sm">
-            Browse the library and add a lift to get today moving.
+            {searchQuery
+              ? `No entries matched "${searchQuery}". Try a different name or muscle tag.`
+              : "Browse the library and add a lift to get today moving."}
           </p>
-          <Link
-            href="/#library"
-            className="bg-[#bef264] hover:bg-lime-400 text-black font-bold text-xs uppercase px-6 py-2.5 rounded-full transition shadow-md"
-          >
-            Go to workouts
-          </Link>
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="bg-[#bef264] hover:bg-lime-400 text-black font-bold text-xs uppercase px-6 py-2.5 rounded-full transition shadow-md cursor-pointer"
+            >
+              Clear Search
+            </button>
+          ) : (
+            <Link
+              href="/#library"
+              className="bg-[#bef264] hover:bg-lime-400 text-black font-bold text-xs uppercase px-6 py-2.5 rounded-full transition shadow-md"
+            >
+              Go to workouts
+            </Link>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {sortedList.map((workout: Workout) => {
+          {filteredAndSortedList.map((workout: Workout) => {
             const completed = isDone(workout.id);
 
             return (
@@ -163,7 +226,6 @@ function MyPlanContent() {
                 key={workout.id}
                 className="w-full bg-[#12151e] border border-[#1e2433] rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-zinc-700"
               >
-                {/* Left: Thumbnail & Details */}
                 <div className="flex items-center gap-4 sm:gap-5">
                   <Link
                     href={`/workout/${workout.id}`}
@@ -189,9 +251,7 @@ function MyPlanContent() {
                       {workout.equipment}
                     </p>
 
-                    {/* Metadata line: Duration, Calories, Rating */}
                     <div className="flex items-center gap-3 text-xs text-zinc-300 mt-1">
-                      {/* Duration */}
                       <div className="flex items-center gap-1.5">
                         <svg
                           className="w-3.5 h-3.5 text-[#bef264]"
@@ -205,7 +265,6 @@ function MyPlanContent() {
                         <span>{workout.duration} min</span>
                       </div>
 
-                      {/* Calories */}
                       <div className="flex items-center gap-1.5">
                         <svg
                           className="w-3.5 h-3.5 text-[#bef264]"
@@ -221,7 +280,6 @@ function MyPlanContent() {
                         <span>{workout.caloriesBurned} kcal</span>
                       </div>
 
-                      {/* Rating */}
                       <div className="flex items-center gap-1.5">
                         <svg
                           className="w-3.5 h-3.5 text-[#bef264]"
@@ -238,11 +296,10 @@ function MyPlanContent() {
                   </div>
                 </div>
 
-                {/* Right: Actions */}
                 <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
                   <Link
                     href={`/workout/${workout.id}`}
-                    className="px-5 py-2.5 rounded-full border border-zinc-700/60 bg-[#161a26] hover:bg-zinc-800 text-zinc-200 text-xs font-semibold transition"
+                    className="px-4 py-2.5 rounded-full border border-zinc-700/60 bg-[#161a26] hover:bg-zinc-800 text-zinc-200 text-xs font-semibold transition"
                   >
                     View Details
                   </Link>
@@ -251,21 +308,43 @@ function MyPlanContent() {
                     <button
                       type="button"
                       onClick={() => markAsDone(workout)}
-                      className={`px-5 py-2.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition cursor-pointer ${
                         completed
-                          ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                          ? "bg-[#182312] text-[#bef264] border border-[#bef264]/40 hover:bg-[#202d18]"
                           : "bg-[#bef264] hover:bg-lime-400 text-black shadow-sm"
                       }`}
                     >
-                      {completed ? "Completed" : "Mark as Done"}
+                      <svg
+                        className="w-3.5 h-3.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                      <span>{completed ? "Completed" : "Mark as Done"}</span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => addToPlan(workout)}
-                      className="px-5 py-2.5 rounded-full text-xs font-bold bg-[#bef264] hover:bg-lime-400 text-black transition cursor-pointer shadow-sm"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold bg-[#bef264] hover:bg-lime-400 text-black transition cursor-pointer shadow-sm"
                     >
-                      Add to Plan
+                      <svg
+                        className="w-3.5 h-3.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
+                      <span>Add to Plan</span>
                     </button>
                   )}
 
@@ -276,7 +355,7 @@ function MyPlanContent() {
                         ? removeFromPlan(workout.id)
                         : removeFromSaved(workout.id)
                     }
-                    title="Remove"
+                    title={activeTab === "plan" ? "Remove from plan" : "Remove from saved"}
                     className="p-2 text-zinc-500 hover:text-rose-400 transition rounded-lg hover:bg-zinc-800/60 cursor-pointer"
                   >
                     <svg
@@ -316,4 +395,3 @@ export default function MyPlanPage() {
     </Suspense>
   );
 }
-
