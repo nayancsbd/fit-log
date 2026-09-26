@@ -1,32 +1,44 @@
-This is a Next.js project bootstrapped with create-next-app.
+# FitLog — Workout Library
 
-Getting Started
+## 📝 Description
+FitLog is a dark, no-nonsense gym companion designed for serious lifters. It allows users to browse a comprehensive library of exercises covering every major muscle group, view detailed execution instructions, and lock them into a daily training plan. The application tracks total workout duration and calories in real-time, helping you train with intent and log every set.
 
-First, run the development server:
+## 🚀 Live Demo
+- **Live URL:** []
 
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-Open http://localhost:3000 with your browser to see the result.
+## 🛠️ Technologies Used
+- **Framework:** Next.js (App Router)
+- **UI Library:** React.js
+- **Styling:** Tailwind CSS & DaisyUI
+- **State Management:** React Context API
+- **Local Storage:** Browser `localStorage` for data persistence
+- **Notifications:** Sonner (Toast Notifications)
+- **Deployment:** Vercel
 
-You can start editing the page by modifying app/page.tsx. The page auto-updates as you edit the file.
+## ✨ 5 Key Features
+1. **Dynamic Workout Library & Sorting:** Browse a responsive grid of exercises fetched directly from an external API, with a client-side sorting feature to order workouts by Duration, Calories, or Rating.
+2. **Comprehensive Details Pages:** Dynamic routes for each workout providing step-by-step instructions, equipment needs, and difficulty levels. 
+3. **Live 'My Plan' Dashboard:** A dedicated dashboard featuring a tabbed interface (Today's Plan vs. Saved) that calculates total workout time and calories burned in real-time based on your selected exercises.
+4. **Persistent Session State:** Utilizes the browser's local storage to ensure your planned and saved workouts survive page reloads, providing a seamless user experience.
+5. **Interactive UI with Feedback:** Features active route highlighting in the navbar, live counter badges for planned/saved items, and toast notifications whenever an action (add, remove, or mark as done) is triggered.
 
-This project uses next/font to automatically optimize and load Geist, a new font family for Vercel.
+## 💻 How to Run Locally
 
-Learn More
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/nayancsbd/fit-log.git
+   cd fit-log
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Next.js Documentation - learn about Next.js features and API.
-Learn Next.js - an interactive Next.js tutorial.
-You can check out the Next.js GitHub repository - your feedback and contributions are welcome!
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
 
-Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the Vercel Platform from the creators of Next.js.
-
-Check out our Next.js deployment documentation for more details.
+4. **Open the application:**
+   Visit [http://localhost:3000](http://localhost:3000) in your browser.
